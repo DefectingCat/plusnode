@@ -1,6 +1,5 @@
 import 'styles/globals.css';
 import type { AppProps } from 'next/app';
-import { Chakra } from 'Chakra';
 import { NextPage } from 'next';
 import { ReactElement, ReactNode } from 'react';
 import Head from 'next/head';
@@ -24,13 +23,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         <meta name="keywords" content="Blog RUA" />
       </Head>
 
-      <Chakra cookies={pageProps.cookies}>
-        {getLayout(<Component {...pageProps} />)}
-      </Chakra>
+      {getLayout(<Component {...pageProps} />)}
     </>
   );
 }
 
 export default MyApp;
-
-export { getServerSideProps } from '../Chakra';
