@@ -2,18 +2,66 @@ import Head from 'next/head';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import MainLayout from 'layouts/MainLayout';
 import { ReactElement } from 'react';
+import client, { gql } from 'lib/apollo-client';
+import { useQuery } from '@apollo/client';
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export interface Test {
+  test_posts_aggregate: TestPostsAggregate;
+}
+export interface TestPostsAggregate {
+  aggregate: Aggregate;
+  nodes: Node[];
+}
+export interface Aggregate {
+  count: number;
+}
+export interface Node {
+  content: string;
+  user_id: number;
+}
+
+const FEED_QUERY = gql`
+  query MyQuery($limit: Int, $offset: Int) {
+    test_posts_aggregate(limit: $limit, offset: $offset) {
+      aggregate {
+        count
+      }
+      nodes {
+        content
+        user_id
+      }
+    }
+  }
+`;
+
+export const getServerSideProps: GetServerSideProps<{
+  data: Test;
+}> = async () => {
+  const { data } = await client.query<Test>({
+    query: FEED_QUERY,
+    variables: {
+      limit: 5,
+      offset: 0,
+    },
+  });
+
   return {
     props: {
-      name: 'xfy',
+      data,
     },
   };
 };
 
 const Home = ({
-  name,
+  data,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { fetchMore } = useQuery(FEED_QUERY, {
+    variables: {
+      limit: 5,
+      offset: 0,
+    },
+  });
+
   return (
     <>
       <Head>
@@ -22,7 +70,26 @@ const Home = ({
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="text-red-700">Hello {name}</div>
+      <div className="text-red-700">
+        Hello {data.test_posts_aggregate.aggregate.count}
+      </div>
+      <div>
+        user posts:
+        <ul>
+          {data.test_posts_aggregate.nodes.map((post) => (
+            <li key={post.user_id}>{post.content}</li>
+          ))}
+        </ul>
+      </div>
+      <button
+        onClick={() =>
+          fetchMore({
+            variables: { offset: data.test_posts_aggregate.nodes.length },
+          })
+        }
+      >
+        LoadMore
+      </button>
     </>
   );
 };

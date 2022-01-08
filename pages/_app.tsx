@@ -3,6 +3,8 @@ import type { AppProps } from 'next/app';
 import { NextPage } from 'next';
 import { ReactElement, ReactNode } from 'react';
 import Head from 'next/head';
+import { ApolloProvider } from '@apollo/client';
+import client from 'lib/apollo-client';
 
 type NextPageWithLayout = NextPage & {
   // eslint-disable-next-line no-unused-vars
@@ -23,7 +25,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         <meta name="keywords" content="Blog RUA" />
       </Head>
 
-      {getLayout(<Component {...pageProps} />)}
+      <ApolloProvider client={client}>
+        {getLayout(<Component {...pageProps} />)}
+      </ApolloProvider>
     </>
   );
 }
